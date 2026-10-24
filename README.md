@@ -73,6 +73,7 @@ To mark such shells in your prompt: `[[ -n $SECRETD_DIR ]] && PROMPT="(secretd) 
 3. Pin each session to the current egress IP.
 4. CI, vulnerability scanning, releases.
 5. Session logs, `session list` and `logs` commands.
+6. Agent awareness: a session README the agent reads.
 
 ## Security notes
 
