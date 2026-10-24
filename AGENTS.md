@@ -18,7 +18,9 @@ mise run fix     # hk fix --all
 mise run ci      # lint + test + build
 ```
 
-Run `mise run ci` before handing back work.
+Run `mise run ci` before handing back work. CI runs the same task.
+
+Releases: push a `v*` tag, goreleaser builds via `.github/workflows/release.yaml`. Actions are pinned to commit SHAs.
 
 Tests must never call AWS. `testdata/fakeaws/aws` stands in for the CLI; its behaviour is set via `FAKE_AWS_*` env vars (see the script header).
 

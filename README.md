@@ -10,6 +10,14 @@ With AWS SSO, the SSO token cache can mint credentials for *every* role you have
 
 `secretd` runs outside the sandbox. It mints STS credentials for an allow-listed set of profiles only, and writes them to a session folder the sandbox can read. The agent switches between those profiles like you would (`--profile`, `AWS_PROFILE`), and never sees the SSO cache.
 
+## Install
+
+```sh
+mise use -g github:TBeijen/secretd
+```
+
+Install it somewhere the sandbox cannot write to. A global mise install qualifies, a `go build` in `~/projects` does not.
+
 ## How it works
 
 ```zsh
