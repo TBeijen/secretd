@@ -35,6 +35,8 @@ region = "eu-west-1"
 source = "acme-prod-ReadOnly"   # name in ~/.aws/config, if different
 ```
 
+Full example in [`examples/config/`](examples/config/). Try it with `SECRETD_CONFIG_DIR=examples/config secretd ls`.
+
 Keep this config outside anything the sandbox can write to.
 
 ## Roadmap

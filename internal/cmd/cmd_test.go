@@ -132,6 +132,27 @@ func TestRunMintFailureStartsNothing(t *testing.T) {
 	}
 }
 
+func TestRunMissingProfile(t *testing.T) {
+	setup(t)
+	marker := filepath.Join(t.TempDir(), "ran")
+
+	// dev-ro has a region in the context, so only the mint call hits the
+	// missing profile; prod-ro fails earlier, at the region lookup.
+	for _, missing := range []string{"dev-ro", "acme-prod-ReadOnly"} {
+		t.Run(missing, func(t *testing.T) {
+			t.Setenv("FAKE_AWS_MISSING", missing)
+			err := Run([]string{"--", "touch", marker})
+			want := "(" + missing + ") could not be found"
+			if err == nil || !strings.Contains(err.Error(), want) || strings.Contains(err.Error(), "[ERROR]") {
+				t.Fatalf("err = %v", err)
+			}
+			if _, err := os.Stat(marker); !os.IsNotExist(err) {
+				t.Fatal("child ran despite missing profile")
+			}
+		})
+	}
+}
+
 func TestRunNoContext(t *testing.T) {
 	setup(t)
 	t.Chdir(t.TempDir())

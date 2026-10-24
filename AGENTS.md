@@ -33,6 +33,7 @@ internal/
   session/           # session dir, rendering, atomic writes, refresh timing
 testdata/
   fakeaws/aws        # fake AWS CLI for tests
+examples/config/     # example config dir; loaded by a test, keep it valid
 ```
 
 ## Design principles

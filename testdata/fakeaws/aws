@@ -2,6 +2,7 @@
 # Fake AWS CLI for tests. Behaviour is controlled via env vars:
 #   FAKE_AWS_VERSION     output of --version
 #   FAKE_AWS_FAIL        space-separated source profiles that fail to mint
+#   FAKE_AWS_MISSING     space-separated profiles absent from the AWS config
 #   FAKE_AWS_EXPIRATION  Expiration returned by export-credentials
 #   FAKE_AWS_REGIONS     space-separated profile=region pairs
 #   FAKE_AWS_ENV_LOG     file to append credential-related env vars to
@@ -17,6 +18,12 @@ fi
 
 if [ "$1 $2" = "configure export-credentials" ]; then
   profile=$4
+  case " $FAKE_AWS_MISSING " in
+    *" $profile "*)
+      printf '\naws: [ERROR]: Unable to retrieve credentials: The config profile (%s) could not be found\n' "$profile" >&2
+      exit 253
+      ;;
+  esac
   case " $FAKE_AWS_FAIL " in
     *" $profile "*)
       echo "" >&2
@@ -31,6 +38,12 @@ fi
 
 if [ "$1 $2 $3" = "configure get region" ]; then
   profile=$5
+  case " $FAKE_AWS_MISSING " in
+    *" $profile "*)
+      printf '\naws: [ERROR]: The config profile (%s) could not be found\n' "$profile" >&2
+      exit 255
+      ;;
+  esac
   for pair in $FAKE_AWS_REGIONS; do
     if [ "${pair%%=*}" = "$profile" ]; then
       echo "${pair#*=}"

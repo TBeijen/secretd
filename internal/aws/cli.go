@@ -128,7 +128,7 @@ func (c *CLI) run(ctx context.Context, args ...string) (string, error) {
 
 	err := cmd.Run()
 	if err != nil {
-		msg := firstLine(stderr.String())
+		msg := strings.TrimPrefix(firstLine(stderr.String()), "aws: [ERROR]: ")
 		if msg == "" {
 			msg = err.Error()
 		}

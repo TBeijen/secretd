@@ -1,0 +1,3 @@
+match = ["~/projects/personal"]
+
+[aws.profiles.home-ro]

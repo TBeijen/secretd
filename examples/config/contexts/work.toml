@@ -1,0 +1,18 @@
+# A context: which AWS profiles to expose when working in which directories.
+# Lives in <config dir>/contexts/, see ../config.toml for where that is.
+#
+# The file name is the context name: `secretd --context work` selects it
+# regardless of cwd. Without --context, secretd picks the context whose `match`
+# path contains the cwd, longest match wins. `secretd ls` shows the pick.
+match = ["~/projects/work"]
+
+# Only these profiles are minted and exposed to the child. Everything else in
+# ~/.aws/config, admin roles included, stays out.
+#
+# Each profile must exist in ~/.aws/config. A missing profile, or one whose SSO
+# session has expired, makes secretd fail at startup before running the command.
+[aws.profiles.acme-nonprod-ro]
+region = "eu-west-1"   # optional, defaults to the source profile's region
+
+[aws.profiles.acme-prod-ro]
+source = "acme-prod-ReadOnly"   # profile name in ~/.aws/config, if different

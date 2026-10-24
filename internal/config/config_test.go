@@ -133,3 +133,17 @@ func TestLoadSettings(t *testing.T) {
 		t.Fatalf("got %+v, %v", s, err)
 	}
 }
+
+func TestExamples(t *testing.T) {
+	dir := "../../examples/config"
+	if _, err := LoadSettings(dir); err != nil {
+		t.Fatal(err)
+	}
+	contexts, err := LoadContexts(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(contexts) != 2 {
+		t.Fatalf("got %d contexts", len(contexts))
+	}
+}

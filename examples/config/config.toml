@@ -1,0 +1,22 @@
+# Example secretd config dir. Copy it into place:
+#
+#   cp -r examples/config ~/.config/secretd
+#
+# secretd looks for its config in, first match wins:
+#   1. $SECRETD_CONFIG_DIR
+#   2. $XDG_CONFIG_HOME/secretd
+#   3. ~/.config/secretd
+#
+# Layout:
+#   config.toml        this file, global settings, optional
+#   contexts/*.toml    one file per context, at least one required
+#
+# Keep it somewhere the sandbox cannot write to. Otherwise an agent could opt
+# itself into more profiles.
+#
+# Try this example without installing it:
+#   SECRETD_CONFIG_DIR=examples/config secretd ls
+
+# Absolute path to the AWS CLI. Defaults to `aws` on PATH, resolved once at startup.
+# Pick a location the sandbox cannot write to.
+# aws_cli = "/opt/homebrew/bin/aws"
