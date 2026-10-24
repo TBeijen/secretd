@@ -18,14 +18,16 @@ func main() {
 
 	var err error
 	switch os.Args[1] {
-	case "ls":
-		err = cmd.Ls(os.Args[2:])
+	case "exec":
+		err = cmd.Exec(os.Args[2:])
+	case "context":
+		err = cmd.ContextCmd(os.Args[2:], os.Stdout)
 	case "version":
 		fmt.Println(version)
 	case "--help", "-h", "help":
 		usage()
 	default:
-		err = cmd.Run(os.Args[1:])
+		err = fmt.Errorf("unknown command %q, see secretd help", os.Args[1])
 	}
 
 	var exitErr *cmd.ExitError
@@ -42,9 +44,10 @@ func usage() {
 	fmt.Fprint(os.Stderr, `Usage: secretd <command> [args]
 
 Commands:
-  [--context X] -- <cmd>...   Mint credentials and run <cmd> with them
-  ls [--context X]            Show the context and profiles for the cwd
-  version                     Print version
+  exec [--context X] -- <cmd>...   Mint credentials and run <cmd> with them
+  context show [--context X]       Show the context and profiles for the cwd
+  context list                     List all contexts
+  version                          Print version
 
 In <cmd>, @SECRETD_DIR@ is replaced with the session dir.
 

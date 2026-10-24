@@ -2,7 +2,7 @@
 
 ## Goal
 
-`secretd -- <cmd>` mints short-lived STS credentials for an allow-listed set of AWS profiles and exposes only those to `<cmd>` (typically `fnox exec -- nono run ... -- claude`).
+`secretd exec -- <cmd>` mints short-lived STS credentials for an allow-listed set of AWS profiles and exposes only those to `<cmd>` (typically `fnox exec -- nono run ... -- claude`).
 
 Port of `nono-pocs/fnox-socket-poc/secretd-poc.sh` to Go.
 
@@ -41,14 +41,15 @@ source = "acme-prod-ReadOnly"   # optional alias; defaults to key
 ## CLI
 
 ```
-secretd [--context X] -- <cmd>...
-secretd ls                # resolved context + profiles for cwd
+secretd exec [--context X] -- <cmd>...
+secretd context show      # resolved context + profiles for cwd
+secretd context list      # all contexts
 ```
 
 Wrapper sketch:
 
 ```zsh
-secretd -- fnox exec -- nono run --profile <nono-profile> --read @SECRETD_DIR@ --allow-cwd -- claude "$@"
+secretd exec -- fnox exec -- nono run --profile <nono-profile> --read @SECRETD_DIR@ --allow-cwd -- claude "$@"
 ```
 
 ## Dependencies
@@ -61,6 +62,6 @@ Stdlib + `BurntSushi/toml` only. Talk to AWS by shelling out to the `aws` CLI, n
 
 ## Done when
 
-- A wrapper (e.g. `secretd -- nono run ... -- claude`) works, and inside the sandbox `aws sts get-caller-identity --profile acme-nonprod-ro` works.
+- A wrapper (e.g. `secretd exec -- nono run ... -- claude`) works, and inside the sandbox `aws sts get-caller-identity --profile acme-nonprod-ro` works.
 - A profile not in the context is not visible (`profile not found`).
 - Tests use a fake `aws` binary, not real AWS.

@@ -1,9 +1,9 @@
 # A context: which AWS profiles to expose when working in which directories.
 # Lives in <config dir>/contexts/, see ../config.toml for where that is.
 #
-# The file name is the context name: `secretd --context work` selects it
+# The file name is the context name: `secretd exec --context work` selects it
 # regardless of cwd. Without --context, secretd picks the context whose `match`
-# path contains the cwd, longest match wins. `secretd ls` shows the pick.
+# path contains the cwd, longest match wins. `secretd context show` shows the pick.
 match = ["~/projects/work"]
 
 # Only these profiles are minted and exposed to the child. Everything else in

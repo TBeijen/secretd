@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -52,14 +53,14 @@ const childScript = `
 exit "${CODE:-0}"
 `
 
-func TestRun(t *testing.T) {
+func TestExec(t *testing.T) {
 	setup(t)
 	out := filepath.Join(t.TempDir(), "out")
 	t.Setenv("OUT", out)
 	t.Setenv("AWS_ACCESS_KEY_ID", "leaked")
 	t.Setenv("AWS_PROFILE", "admin")
 
-	err := Run([]string{"--", "sh", "-c", childScript, "sh", Placeholder + "/aws"})
+	err := Exec([]string{"--", "sh", "-c", childScript, "sh", Placeholder + "/aws"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,13 +92,13 @@ func TestRun(t *testing.T) {
 	}
 }
 
-func TestRunKeepsAllowedProfile(t *testing.T) {
+func TestExecKeepsAllowedProfile(t *testing.T) {
 	setup(t)
 	out := filepath.Join(t.TempDir(), "out")
 	t.Setenv("OUT", out)
 	t.Setenv("AWS_PROFILE", "dev-ro")
 
-	if err := Run([]string{"--", "sh", "-c", childScript}); err != nil {
+	if err := Exec([]string{"--", "sh", "-c", childScript}); err != nil {
 		t.Fatal(err)
 	}
 	b, _ := os.ReadFile(out)
@@ -106,24 +107,24 @@ func TestRunKeepsAllowedProfile(t *testing.T) {
 	}
 }
 
-func TestRunExitCode(t *testing.T) {
+func TestExecExitCode(t *testing.T) {
 	setup(t)
 	t.Setenv("OUT", filepath.Join(t.TempDir(), "out"))
 	t.Setenv("CODE", "3")
 
-	err := Run([]string{"--", "sh", "-c", childScript})
+	err := Exec([]string{"--", "sh", "-c", childScript})
 	var exitErr *ExitError
 	if !errors.As(err, &exitErr) || exitErr.Code != 3 {
 		t.Fatalf("err = %v", err)
 	}
 }
 
-func TestRunMintFailureStartsNothing(t *testing.T) {
+func TestExecMintFailureStartsNothing(t *testing.T) {
 	setup(t)
 	marker := filepath.Join(t.TempDir(), "ran")
 	t.Setenv("FAKE_AWS_FAIL", "acme-prod-ReadOnly")
 
-	err := Run([]string{"--", "touch", marker})
+	err := Exec([]string{"--", "touch", marker})
 	if err == nil || !strings.Contains(err.Error(), "prod-ro") {
 		t.Fatalf("err = %v", err)
 	}
@@ -132,7 +133,7 @@ func TestRunMintFailureStartsNothing(t *testing.T) {
 	}
 }
 
-func TestRunMissingProfile(t *testing.T) {
+func TestExecMissingProfile(t *testing.T) {
 	setup(t)
 	marker := filepath.Join(t.TempDir(), "ran")
 
@@ -141,7 +142,7 @@ func TestRunMissingProfile(t *testing.T) {
 	for _, missing := range []string{"dev-ro", "acme-prod-ReadOnly"} {
 		t.Run(missing, func(t *testing.T) {
 			t.Setenv("FAKE_AWS_MISSING", missing)
-			err := Run([]string{"--", "touch", marker})
+			err := Exec([]string{"--", "touch", marker})
 			want := "(" + missing + ") could not be found"
 			if err == nil || !strings.Contains(err.Error(), want) || strings.Contains(err.Error(), "[ERROR]") {
 				t.Fatalf("err = %v", err)
@@ -153,16 +154,16 @@ func TestRunMissingProfile(t *testing.T) {
 	}
 }
 
-func TestRunNoContext(t *testing.T) {
+func TestExecNoContext(t *testing.T) {
 	setup(t)
 	t.Chdir(t.TempDir())
-	err := Run([]string{"--", "true"})
+	err := Exec([]string{"--", "true"})
 	if err == nil || !strings.Contains(err.Error(), "no context matches") {
 		t.Fatalf("err = %v", err)
 	}
 }
 
-func TestParseRunArgs(t *testing.T) {
+func TestParseExecArgs(t *testing.T) {
 	tests := []struct {
 		args        []string
 		wantContext string
@@ -179,7 +180,7 @@ func TestParseRunArgs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(strings.Join(tt.args, " "), func(t *testing.T) {
-			ctx, child, err := parseRunArgs(tt.args)
+			ctx, child, err := parseExecArgs(tt.args)
 			if tt.wantErr {
 				if err == nil {
 					t.Fatal("expected error")
@@ -203,4 +204,40 @@ func lineValue(s, prefix string) string {
 		}
 	}
 	return ""
+}
+
+func TestContextShow(t *testing.T) {
+	setup(t)
+	var b strings.Builder
+	if err := ContextCmd([]string{"show"}, &b); err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"context: work\n", "  dev-ro  (region: eu-west-1)\n", "  prod-ro  (source: acme-prod-ReadOnly)\n"} {
+		if !strings.Contains(b.String(), want) {
+			t.Errorf("missing %q:\n%s", want, b.String())
+		}
+	}
+}
+
+func TestContextList(t *testing.T) {
+	project := setup(t)
+	t.Chdir(t.TempDir())
+	var b strings.Builder
+	if err := ContextCmd([]string{"list"}, &b); err != nil {
+		t.Fatal(err)
+	}
+	want := "CONTEXT  MATCH" + strings.Repeat(" ", len(project)-3) + "PROFILES\n" +
+		"work     " + project + "  dev-ro, prod-ro\n"
+	if b.String() != want {
+		t.Fatalf("got:\n%s\nwant:\n%s", b.String(), want)
+	}
+}
+
+func TestContextUsage(t *testing.T) {
+	setup(t)
+	for _, args := range [][]string{{}, {"ls"}, {"list", "x"}, {"show", "x"}} {
+		if err := ContextCmd(args, io.Discard); err == nil {
+			t.Errorf("%v: expected error", args)
+		}
+	}
 }

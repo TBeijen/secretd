@@ -15,7 +15,7 @@
 # itself into more profiles.
 #
 # Try this example without installing it:
-#   SECRETD_CONFIG_DIR=examples/config secretd ls
+#   SECRETD_CONFIG_DIR=examples/config secretd context list
 
 # Absolute path to the AWS CLI. Defaults to `aws` on PATH, resolved once at startup.
 # Pick a location the sandbox cannot write to.

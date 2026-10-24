@@ -13,7 +13,7 @@ With AWS SSO, the SSO token cache can mint credentials for *every* role you have
 ## How it works
 
 ```zsh
-secretd -- fnox exec -- nono run --read @SECRETD_DIR@ -- claude
+secretd exec -- fnox exec -- nono run --read @SECRETD_DIR@ -- claude
 ```
 
 1. Picks a context by matching the current directory against `~/.config/secretd/contexts/*.toml`.
@@ -35,7 +35,7 @@ region = "eu-west-1"
 source = "acme-prod-ReadOnly"   # name in ~/.aws/config, if different
 ```
 
-Full example in [`examples/config/`](examples/config/). Try it with `SECRETD_CONFIG_DIR=examples/config secretd ls`.
+Full example in [`examples/config/`](examples/config/). Try it with `SECRETD_CONFIG_DIR=examples/config secretd context show`.
 
 Keep this config outside anything the sandbox can write to.
 
@@ -45,6 +45,7 @@ Keep this config outside anything the sandbox can write to.
 2. Chain into a dedicated view-only role with SourceIdentity.
 3. Pin each session to the current egress IP.
 4. CI, vulnerability scanning, releases.
+5. Session logs, `session list` and `logs` commands.
 
 ## Security notes
 

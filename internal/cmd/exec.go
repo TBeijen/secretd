@@ -26,8 +26,8 @@ type ExitError struct {
 
 func (e *ExitError) Error() string { return fmt.Sprintf("exit status %d", e.Code) }
 
-func Run(args []string) error {
-	contextName, child, err := parseRunArgs(args)
+func Exec(args []string) error {
+	contextName, child, err := parseExecArgs(args)
 	if err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ func Run(args []string) error {
 	return err
 }
 
-func parseRunArgs(args []string) (contextName string, child []string, err error) {
+func parseExecArgs(args []string) (contextName string, child []string, err error) {
 	for i := 0; i < len(args); i++ {
 		a := args[i]
 		switch {
@@ -97,13 +97,26 @@ func parseRunArgs(args []string) (contextName string, child []string, err error)
 		case strings.HasPrefix(a, "--context="):
 			contextName = strings.TrimPrefix(a, "--context=")
 		default:
-			return "", nil, fmt.Errorf("unexpected argument %q, usage: secretd [--context X] -- <cmd>...", a)
+			return "", nil, fmt.Errorf("unexpected argument %q, usage: secretd exec [--context X] -- <cmd>...", a)
 		}
 	}
 	return "", nil, errors.New("missing -- <cmd>...")
 }
 
 func loadContext(name string) (*config.Context, config.Settings, error) {
+	contexts, settings, err := loadContexts()
+	if err != nil {
+		return nil, settings, err
+	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		return nil, settings, err
+	}
+	c, err := config.Select(contexts, name, cwd)
+	return c, settings, err
+}
+
+func loadContexts() ([]config.Context, config.Settings, error) {
 	dir, err := config.Dir()
 	if err != nil {
 		return nil, config.Settings{}, err
@@ -119,12 +132,7 @@ func loadContext(name string) (*config.Context, config.Settings, error) {
 	if len(contexts) == 0 {
 		return nil, settings, fmt.Errorf("no contexts in %s", filepath.Join(dir, "contexts"))
 	}
-	cwd, err := os.Getwd()
-	if err != nil {
-		return nil, settings, err
-	}
-	c, err := config.Select(contexts, name, cwd)
-	return c, settings, err
+	return contexts, settings, nil
 }
 
 func resolveProfiles(ctx context.Context, m aws.Minter, c *config.Context) ([]session.Profile, error) {
