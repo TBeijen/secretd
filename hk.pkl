@@ -1,0 +1,23 @@
+amends "package://github.com/jdx/hk/releases/download/v2.4.0/hk@2.4.0#/Config.pkl"
+import "package://github.com/jdx/hk/releases/download/v2.4.0/hk@2.4.0#/Builtins.pkl"
+
+steps {
+    ["trailing-whitespace"] = Builtins.trailing_whitespace
+    ["newlines"] = Builtins.newlines
+    ["mixed-line-ending"] = Builtins.mixed_line_ending
+    ["check-merge-conflict"] = Builtins.check_merge_conflict
+    ["check-added-large-files"] = Builtins.check_added_large_files
+    ["go-fmt"] = Builtins.go_fmt
+    ["go-vet"] = Builtins.go_vet
+}
+
+hooks {
+    ["pre-commit"] {
+        fix = true
+        stash = "git"
+    }
+    ["check"] {}
+    ["fix"] {
+        fix = true
+    }
+}

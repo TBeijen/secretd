@@ -6,20 +6,19 @@ A Go CLI that mints short-lived AWS credentials for opted-in profiles and starts
 
 Design and scope live in `issues/`. Read the relevant issue before implementing.
 
-## Building
+## Building and testing
 
-Tooling (Go) via mise: `mise install`.
-
-```sh
-mkdir -p bin
-go build -o bin/secretd .
-```
-
-## Testing
+Tooling (Go, hk) via mise: `mise install`. Tasks:
 
 ```sh
-go test ./...
+mise run build   # bin/secretd
+mise run test    # go test -race ./...
+mise run lint    # hk check --all: gofmt, go vet, whitespace, newlines
+mise run fix     # hk fix --all
+mise run ci      # lint + test + build
 ```
+
+Run `mise run ci` before handing back work.
 
 Tests must never call AWS. `testdata/fakeaws/aws` stands in for the CLI; its behaviour is set via `FAKE_AWS_*` env vars (see the script header).
 

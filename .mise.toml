@@ -1,2 +1,18 @@
 [tools]
 go = "1.27"
+hk = "2"
+
+[tasks.build]
+run = "mkdir -p bin && go build -o bin/secretd ."
+
+[tasks.test]
+run = "go test -race ./..."
+
+[tasks.lint]
+run = "hk check --all"
+
+[tasks.fix]
+run = "hk fix --all"
+
+[tasks.ci]
+depends = ["lint", "test", "build"]
