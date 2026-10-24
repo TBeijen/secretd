@@ -8,6 +8,8 @@ Design and scope live in `issues/`. Read the relevant issue before implementing.
 
 ## Building
 
+Tooling (Go) via mise: `mise install`.
+
 ```sh
 mkdir -p bin
 go build -o bin/secretd .
@@ -19,18 +21,19 @@ go build -o bin/secretd .
 go test ./...
 ```
 
-Tests must never call AWS. Put a fake `aws` script on `PATH` (under `testdata/`) that returns fixed JSON.
+Tests must never call AWS. `testdata/fakeaws/aws` stands in for the CLI; its behaviour is set via `FAKE_AWS_*` env vars (see the script header).
 
-## Project layout (planned)
+## Project layout
 
 ```
 main.go              # CLI entry, os.Args dispatch
 internal/
-  cmd/               # run (wrap child), ls
-  config/            # contexts, matching, TOML parsing
-  aws/               # Minter interface + CLI-based implementation
-  session/           # session folder, rendering, atomic writes, refresh
+  cmd/               # run (mint, wrap child, signals, env), ls
+  config/            # contexts, matching, TOML parsing, validation
+  aws/               # Minter interface + CLI implementation, env stripping
+  session/           # session dir, rendering, atomic writes, refresh timing
 testdata/
+  fakeaws/aws        # fake AWS CLI for tests
 ```
 
 ## Design principles

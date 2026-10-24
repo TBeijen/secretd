@@ -2,7 +2,7 @@
 
 Short-lived AWS credentials for sandboxed AI agents, scoped to profiles you opt into.
 
-> Status: design phase. See `issues/`.
+> Status: early. Step 1 (mint opted-in SSO profiles) is implemented. See `issues/`.
 
 ## Why
 

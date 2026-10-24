@@ -1,0 +1,44 @@
+#!/bin/sh
+# Fake AWS CLI for tests. Behaviour is controlled via env vars:
+#   FAKE_AWS_VERSION     output of --version
+#   FAKE_AWS_FAIL        space-separated source profiles that fail to mint
+#   FAKE_AWS_EXPIRATION  Expiration returned by export-credentials
+#   FAKE_AWS_REGIONS     space-separated profile=region pairs
+#   FAKE_AWS_ENV_LOG     file to append credential-related env vars to
+
+if [ -n "$FAKE_AWS_ENV_LOG" ]; then
+  env | grep -E '^AWS_(ACCESS_KEY_ID|SECRET_ACCESS_KEY|SESSION_TOKEN|PROFILE)=' >> "$FAKE_AWS_ENV_LOG"
+fi
+
+if [ "$1" = "--version" ]; then
+  echo "${FAKE_AWS_VERSION:-aws-cli/2.38.5 Python/3.13.0 Darwin/25.6.0 source/arm64}"
+  exit 0
+fi
+
+if [ "$1 $2" = "configure export-credentials" ]; then
+  profile=$4
+  case " $FAKE_AWS_FAIL " in
+    *" $profile "*)
+      echo "" >&2
+      echo "Error when retrieving token from sso: Token has expired and refresh failed" >&2
+      exit 255
+      ;;
+  esac
+  printf '{"Version": 1, "AccessKeyId": "AKIA-%s", "SecretAccessKey": "secret-%s", "SessionToken": "token-%s", "Expiration": "%s"}\n' \
+    "$profile" "$profile" "$profile" "${FAKE_AWS_EXPIRATION:-2099-01-01T00:00:00+00:00}"
+  exit 0
+fi
+
+if [ "$1 $2 $3" = "configure get region" ]; then
+  profile=$5
+  for pair in $FAKE_AWS_REGIONS; do
+    if [ "${pair%%=*}" = "$profile" ]; then
+      echo "${pair#*=}"
+      exit 0
+    fi
+  done
+  exit 1
+fi
+
+echo "fake aws: unsupported args: $*" >&2
+exit 2
