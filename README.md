@@ -39,6 +39,25 @@ Full example in [`examples/config/`](examples/config/). Try it with `SECRETD_CON
 
 Keep this config outside anything the sandbox can write to.
 
+## Try it without a sandbox
+
+Start a shell that sees only the opted-in profiles:
+
+```sh
+secretd exec -- "$SHELL"
+
+echo $AWS_CONFIG_FILE $AWS_SHARED_CREDENTIALS_FILE   # both inside the session folder
+cat "$AWS_CONFIG_FILE"                               # opted-in profiles only
+aws configure list-profiles
+aws sts get-caller-identity --profile acme-nonprod-ro
+aws sts get-caller-identity --profile <admin-profile> # fails: profile not found
+exit                                                 # session folder is removed
+```
+
+Your shell's startup files run again in the new shell. If they set `AWS_CONFIG_FILE`, they undo the isolation. Check with `aws configure list-profiles`.
+
+To mark such shells in your prompt: `[[ -n $SECRETD_DIR ]] && PROMPT="(secretd) $PROMPT"`.
+
 ## Roadmap
 
 1. Mint opted-in SSO profiles.
