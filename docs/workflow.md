@@ -11,11 +11,11 @@
 ## Flow
 
 1. **Spec.** Write the issue as a GitHub issue (`gh issue create --body-file`). Specs may be drafted with skills (e.g. mattpocock's). Longer design notes go in `docs/` and are linked from the issue.
-2. **Issue review.** A fresh-context agent reviews the issue against `AGENTS.md` and the [security checklist](#security-checklist). Findings go as issue comments. Fix the spec before building.
+2. **Issue review.** A fresh-context agent reviews the issue against `AGENTS.md` and the [security checklist](#security-checklist) (`/review-security <issue>`). Findings go as issue comments. Fix the spec before building.
 3. **Build.** One branch and one PR per issue, `Closes #n`. `mise run ci` passes locally.
 4. **PR review.** Fresh-context reviews, each posted as PR comments:
    - standards and spec (does the diff do what the issue says?), e.g. mattpocock's `code-review` skill;
-   - security, against the checklist.
+   - security, against the checklist (`/review-security <pr>`).
    - Later (phase 2): one of them by a different model than the one that wrote the code.
 5. **Fix and merge.** The implementing agent addresses the comments. A human merges.
 
@@ -113,7 +113,7 @@ Applies to issue reviews and PR reviews.
 Currently Claude Code. The preference is open, multi-vendor harnesses (Copilot CLI, OpenCode, pi). Keep the workflow portable:
 
 - **Instructions** live in `AGENTS.md`. Claude Code reads `CLAUDE.md`, so add a `CLAUDE.md` that only contains `@AGENTS.md`.
-- **Skills:** check per harness whether it supports `SKILL.md`-style skills, and install the same ones in each (mattpocock's, any project skills).
+- **Skills:** check per harness whether it supports `SKILL.md`-style skills, and install the same ones in each (mattpocock's, any project skills). Project skills live in `.agents/skills/`; `.claude/skills/` holds a symlink per skill.
 - **Sandbox:** each harness needs its own nono profile: network allowlist, credential routes, config dirs. Do this before switching.
 - **Running other models without switching harnesses:**
   - **Not from inside the main agent.** Anything it starts inherits its sandbox, so its nono profile would need every reviewer's hosts, credentials and config dirs. That widens the main agent's sandbox. Copilot CLI, for example, keeps its OAuth token in the Keychain, which a no-keychain profile blocks.
