@@ -4,7 +4,7 @@
 
 A Go CLI that mints short-lived AWS credentials for opted-in profiles and starts a child command with them. It runs **outside** the sandbox, wrapping e.g. `fnox exec -- nono run ...`.
 
-Design and scope live in `issues/`. Read the relevant issue before implementing.
+Specs are GitHub issues (older ones in `issues/`). Read the relevant issue before implementing.
 
 Workflow (draft) and the security review checklist: `docs/workflow.md`.
 
@@ -71,6 +71,20 @@ Conventional Commits: `<type>: <summary>`, lowercase, imperative, no trailing pe
 - One PR per issue. The PR title follows the same format: it becomes the squash commit on `main`, and goreleaser builds the changelog from it. CI enforces this (`pr-title` job in `ci.yaml`; keep its type list in sync with this table).
 - Branch commits are squashed away, so their messages matter less. Use the same format anyway.
 - Reference the issue in the PR body: `Closes #n`.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs are GitHub issues on `TBeijen/secretd`, via `gh`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root, created when needed. See `docs/agents/domain.md`.
 
 ## Never
 
