@@ -33,6 +33,7 @@ $XDG_STATE_HOME/secretd/          # default ~/.local/state/secretd, 0700, owner-
 ## Trade-offs
 
 - Survives reboots, unlike `$TMPDIR`. A crashed session leaves expired credentials behind until the next sweep. The credentials are short-lived. nono's OAuth-capture `providers.json` with real tokens is in the same place.
+- No hard protection. nono refuses to grant its own state roots (`$XDG_STATE_HOME/nono`, `~/.nono`) even if a profile or `--read` asks for them. Nothing stops a profile from granting `~/.local/state` and with it every secretd session. Document it, and maybe ask nono upstream for user-configurable protected roots.
 - Not in memory. On Linux, `$XDG_RUNTIME_DIR` (tmpfs, removed at logout) would be better on paper. Not now: nono doesn't use it either, and one location is easier to reason about.
 
 ## Docs

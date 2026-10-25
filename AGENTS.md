@@ -6,6 +6,8 @@ A Go CLI that mints short-lived AWS credentials for opted-in profiles and starts
 
 Design and scope live in `issues/`. Read the relevant issue before implementing.
 
+Workflow (draft) and the security review checklist: `docs/workflow.md`.
+
 ## Building and testing
 
 Tooling (Go, hk) via mise: `mise install`. Tasks:
