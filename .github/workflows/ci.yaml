@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
+    # edited: re-check the title when it changes
+    types: [opened, edited, synchronize, reopened]
 
 permissions:
   contents: read
@@ -20,12 +22,38 @@ jobs:
 
       - run: mise run ci
 
+  pr-title:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Keep in sync with AGENTS.md "Commits and PRs"
+          types: |
+            feat
+            fix
+            refactor
+            perf
+            chore
+            build
+            docs
+            test
+            ci
+          subjectPattern: ^(?![A-Z]).+[^.]$
+          subjectPatternError: |
+            The subject "{subject}" in "{title}" must start lowercase and not end with a period.
+
   # The only required check in the ruleset. Add new jobs to `needs`.
   all-checks:
     if: always()
-    needs: [ci]
+    needs: [ci, pr-title]
     runs-on: ubuntu-latest
     steps:
       - uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35 # v1.3.0
         with:
           jobs: ${{ toJSON(needs) }}
+          allowed-skips: pr-title
