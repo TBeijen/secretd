@@ -34,8 +34,32 @@ Applies to issue reviews and PR reviews.
 
 - **Fine-grained PAT, this repo only:**
   - read and write: Contents, Issues, Pull requests;
-  - read: Metadata;
+  - read: Metadata; optionally Actions, so the agent can see CI runs (`gh run view`);
+  - expiry e.g. 90 days;
   - not granted: Administration, or Workflows. Without Workflows, agents can't change `.github/workflows/`.
+- **Token on the dev machine:** stored in the Keychain via fnox in `fnox.local.toml` (gitignored), exposed as `GH_TOKEN`. Use `GH_TOKEN`, not `GITHUB_TOKEN`: the nono profile hides and replaces `GH_TOKEN` only, so a `GITHUB_TOKEN` would reach the sandbox unmasked.
+
+  ```toml
+  # fnox.local.toml
+  [providers.keychain]
+  type = "keychain"
+  service = "<service>"
+
+  [secrets]
+  GH_TOKEN = { provider = "keychain", value = "<keychain-name>" }
+  ```
+
+  Store it outside the sandbox, from the clipboard:
+
+  ```sh
+  pbpaste | tr -d '\r\n' | fnox -c fnox.local.toml set \
+    -p keychain -k <keychain-name> \
+    GH_TOKEN
+  pbcopy < /dev/null                   # clear the clipboard (and any clipboard manager history)
+  fnox get GH_TOKEN | cut -c1-11       # → github_pat_
+  ```
+
+  Without `-c` and `-k`, `fnox set` writes to `fnox.toml` and uses the variable name as Keychain name. `fnox.local.toml` then overrides it with a name that has no value.
 - **Ruleset on `main`:** require a PR, require CI, no force pushes.
 - **Merging:** the agent uses the owner's token, so it can technically merge. nono's `endpoint_rules` can't distinguish GraphQL mutations (`gh pr merge` uses GraphQL). Accept this, and merge by hand as a convention.
 - **Later:** a GitHub App as a separate bot identity for posted reviews.
