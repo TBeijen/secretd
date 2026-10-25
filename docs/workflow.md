@@ -26,6 +26,7 @@ Applies to issue reviews and PR reviews.
 - For every file or folder secretd creates: who can read or write it? Consider other users **and** the sandboxed agent under nono's default policy (e.g. `$TMPDIR` and `/tmp` are writable from the sandbox, `~/.local/state` is not).
 - Can one session reach another session's data?
 - Can the agent change what secretd reads (config, binaries, `aws` CLI, session files)?
+- Can the agent change what runs outside the sandbox? E.g. `.git/config` and `.git/hooks/` are writable from the sandbox, and run on the next `git` command on the host.
 - Do credential values reach logs, errors, `meta.json` or stdout?
 - What happens on failure: partial writes, crashes, expired SSO, a killed child?
 - Does a "Done when" item test the boundary from inside the sandbox, not just the happy path?
@@ -60,6 +61,51 @@ Applies to issue reviews and PR reviews.
   ```
 
   Without `-c` and `-k`, `fnox set` writes to `fnox.toml` and uses the variable name as Keychain name. `fnox.local.toml` then overrides it with a name that has no value.
+- **Git over HTTPS, not SSH.** An SSH key carries all of the owner's permissions, and nono blocks port 22 anyway. HTTPS lets the PAT scope what a push can do. In the clone:
+
+  ```sh
+  git remote set-url origin https://github.com/<owner>/<repo>.git
+  git config credential.https://github.com.helper '!gh auth git-credential'
+  ```
+
+  On the host, `gh` then answers with its own login (`gho_…`), unless `GH_TOKEN` is set.
+- **nono credential routes.** Inside the sandbox, `GH_TOKEN` is a placeholder. The proxy injects the real value per route:
+
+  ```json
+  "credentials": ["github", "github_git"],
+  "custom_credentials": {
+    "github": {
+      "upstream": "https://api.github.com",
+      "credential_key": "env://GH_TOKEN",
+      "inject_header": "Authorization",
+      "credential_format": "token {}",
+      "endpoint_rules": [
+        { "method": "GET", "path": "/**" },
+        { "method": "POST", "path": "/graphql" }
+      ]
+    },
+    "github_git": {
+      "upstream": "https://github.com",
+      "credential_key": "env://GH_GIT_BASIC",
+      "inject_header": "Authorization",
+      "credential_format": "Basic {}",
+      "endpoint_rules": [
+        { "method": "GET",  "path": "/*/*/info/refs" },
+        { "method": "POST", "path": "/*/*/git-upload-pack" },
+        { "method": "POST", "path": "/*/*/git-receive-pack" }
+      ]
+    }
+  }
+  ```
+
+  - API: `GET` and GraphQL only. Most `gh` writes (`pr create`, `pr comment`, `pr review`) use GraphQL. REST writes such as `gh label create` get a 401.
+  - Git: `github.com` rejects `Bearer`, so the route needs `Basic` with a pre-encoded `x-access-token:<PAT>`. Store it as `GH_GIT_BASIC`, the same way as `GH_TOKEN`, and update it when the PAT rotates:
+
+    ```sh
+    printf 'x-access-token:%s' "$(fnox get GH_TOKEN)" | base64 | tr -d '\n' | pbcopy
+    ```
+  - Endpoint rules aren't per repo. The PAT decides which repos a route can reach.
+- **Signed commits in the sandbox.** nono denies `~/.ssh`. The signing key pair (private and `.pub`) needs both `read_file` and `bypass_protection` in the profile. Use a dedicated signing key without a passphrase, not the key used for push: the sandbox can read it. Don't expose the SSH agent socket instead: that hands over every loaded key.
 - **Ruleset on `main`:** require a PR, squash merges only, no force pushes. Require one status check: `all-checks`, a gate job in `ci.yaml` (`re-actors/alls-green`). New CI jobs go into its `needs`, so the ruleset never changes.
 - **Merging:** the agent uses the owner's token, so it can technically merge. nono's `endpoint_rules` can't distinguish GraphQL mutations (`gh pr merge` uses GraphQL). Accept this, and merge by hand as a convention.
 - **Later:** a GitHub App as a separate bot identity for posted reviews.
