@@ -87,6 +87,10 @@ Default vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-
 
 Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root, created when needed. See `docs/agents/domain.md`.
 
+### Project skills
+
+In `.agents/skills/`, symlinked per skill from `.claude/skills/`. `review-security` reviews an issue or PR against the security checklist.
+
 ## Never
 
 - Print, log or include credential values in errors. Use profile names and expiry times only.
