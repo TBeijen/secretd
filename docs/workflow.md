@@ -61,14 +61,17 @@ Applies to issue reviews and PR reviews.
   ```
 
   Without `-c` and `-k`, `fnox set` writes to `fnox.toml` and uses the variable name as Keychain name. `fnox.local.toml` then overrides it with a name that has no value.
-- **Git over HTTPS, not SSH.** An SSH key carries all of the owner's permissions, and nono blocks port 22 anyway. HTTPS lets the PAT scope what a push can do. In the clone:
+- **Git config in the clone.** Set these per clone (`.git/config`), so they apply on the host and in the sandbox:
 
   ```sh
   git remote set-url origin https://github.com/<owner>/<repo>.git
   git config credential.https://github.com.helper '!gh auth git-credential'
+  git config push.default simple
   ```
 
-  On the host, `gh` then answers with its own login (`gho_…`), unless `GH_TOKEN` is set.
+  - **HTTPS, not SSH.** An SSH key carries all of the owner's permissions, and nono blocks port 22 anyway. HTTPS lets the PAT scope what a push can do. Set `url`, not just `pushurl`, so fetching works in the sandbox too.
+  - **`gh` as credential helper.** In the sandbox it hands git the placeholder, which the nono route replaces. On the host, `gh` answers with its own login (`gho_…`), unless `GH_TOKEN` is set.
+  - **`push.default simple`.** With `matching`, a bare `git push` pushes every local branch that exists on the remote, so a stale local `main` or another branch can go along. `simple` pushes only the current branch to its upstream. Git's default, but a global config may override it.
 - **nono credential routes.** Inside the sandbox, `GH_TOKEN` is a placeholder. The proxy injects the real value per route:
 
   ```json
