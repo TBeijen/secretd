@@ -13,6 +13,7 @@ Workflow (draft) and the security review checklist: `docs/workflow.md`.
 Tooling (Go, hk) via mise: `mise install`. Tasks:
 
 ```sh
+mise run setup   # once per clone: HTTPS remote, gh credentials, push mode, hk hooks
 mise run build   # bin/secretd
 mise run test    # go test -race ./...
 mise run lint    # hk check --all: gofmt, go vet, whitespace, newlines

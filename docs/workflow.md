@@ -61,17 +61,11 @@ Applies to issue reviews and PR reviews.
   ```
 
   Without `-c` and `-k`, `fnox set` writes to `fnox.toml` and uses the variable name as Keychain name. `fnox.local.toml` then overrides it with a name that has no value.
-- **Git config in the clone.** Set these per clone (`.git/config`), so they apply on the host and in the sandbox:
-
-  ```sh
-  git remote set-url origin https://github.com/<owner>/<repo>.git
-  git config credential.https://github.com.helper '!gh auth git-credential'
-  git config push.default simple
-  ```
-
+- **Git config in the clone.** `mise run setup` makes a fresh clone agent-ready. It writes to `.git/config` only, so it applies on the host and in the sandbox. Tokens and the nono profile stay manual.
   - **HTTPS, not SSH.** An SSH key carries all of the owner's permissions, and nono blocks port 22 anyway. HTTPS lets the PAT scope what a push can do. Set `url`, not just `pushurl`, so fetching works in the sandbox too.
-  - **`gh` as credential helper.** In the sandbox it hands git the placeholder, which the nono route replaces. On the host, `gh` answers with its own login (`gho_…`), unless `GH_TOKEN` is set.
+  - **`gh` as the only credential helper.** In the sandbox it hands git the placeholder, which the nono route replaces. On the host, `gh` answers with its own login (`gho_…`), unless `GH_TOKEN` is set. An empty `credential.helper` drops inherited ones like `osxkeychain`: from the sandbox it can't reach the Keychain, and it would try to store the nono proxy credential.
   - **`push.default simple`.** With `matching`, a bare `git push` pushes every local branch that exists on the remote, so a stale local `main` or another branch can go along. `simple` pushes only the current branch to its upstream. Git's default, but a global config may override it.
+  - **hk hooks.** `hk install` adds the pre-commit hook as config-based hook (`hook.hk-pre-commit.*`), so `.git/hooks/` stays empty.
 - **nono credential routes.** Inside the sandbox, `GH_TOKEN` is a placeholder. The proxy injects the real value per route:
 
   ```json
