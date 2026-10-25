@@ -56,6 +56,22 @@ examples/config/     # example config dir; loaded by a test, keep it valid
 - No comments unless the why is non-obvious.
 - Errors and logs go to stderr. Never mix them into stdout.
 
+## Commits and PRs
+
+Conventional Commits: `<type>: <summary>`, lowercase, imperative, no trailing period. Optionally a scope: `fix(session): ...`.
+
+| Type | For | In release notes |
+|---|---|---|
+| `feat` | New behaviour | yes |
+| `fix` | Bug fixes | yes |
+| `refactor`, `perf`, `chore`, `build` | Internal changes | yes |
+| `chore(deps)`, `fix(deps)` | Dependency updates (Renovate's semantic commit format) | yes |
+| `docs`, `test`, `ci` | Docs, tests, CI | no |
+
+- One PR per issue. The PR title follows the same format: it becomes the squash commit on `main`, and goreleaser builds the changelog from it. CI enforces this (`pr-title` job in `ci.yaml`; keep its type list in sync with this table).
+- Branch commits are squashed away, so their messages matter less. Use the same format anyway.
+- Reference the issue in the PR body: `Closes #n`.
+
 ## Never
 
 - Print, log or include credential values in errors. Use profile names and expiry times only.
