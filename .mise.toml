@@ -2,6 +2,22 @@
 go = "1.27"
 hk = "2"
 
+[tasks.setup]
+description = "Configure this clone for sandboxed agents: HTTPS remote, gh credentials, push mode, hk hooks"
+run = '''
+set -eu
+url=$(git remote get-url origin | sed -E 's#^(ssh://)?git@github\.com[:/]#https://github.com/#')
+git remote set-url origin "$url"
+git config --unset-all remote.origin.pushurl || true
+# Drop inherited helpers for all URLs, including the nono proxy (e.g. osxkeychain, unreachable from the sandbox).
+git config --unset-all credential.helper || true
+git config --add credential.helper ''
+git config --unset-all credential.https://github.com.helper || true
+git config --add credential.https://github.com.helper '!gh auth git-credential'
+git config push.default simple
+hk install
+'''
+
 [tasks.build]
 run = "mkdir -p bin && go build -o bin/secretd ."
 
