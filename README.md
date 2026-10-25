@@ -74,6 +74,7 @@ To mark such shells in your prompt: `[[ -n $SECRETD_DIR ]] && PROMPT="(secretd) 
 4. CI, vulnerability scanning, releases.
 5. Session logs, `session list` and `logs` commands.
 6. Agent awareness: a session README the agent reads.
+7. Move session storage out of `$TMPDIR`, which sandboxes can read.
 
 ## Security notes
 

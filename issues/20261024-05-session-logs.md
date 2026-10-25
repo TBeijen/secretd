@@ -6,6 +6,8 @@ With several sessions running, see what each one is doing, and look back afterwa
 
 ## Layout
 
+Builds on 07, which moves sessions to `$XDG_STATE_HOME/secretd/sessions/<id>/`. Logs and `meta.json` go there, next to `share/`, and are never granted to the sandbox.
+
 State lives in `$XDG_STATE_HOME/secretd` (default `~/.local/state/secretd`), kept after exit:
 
 ```
