@@ -19,3 +19,13 @@ jobs:
       - uses: jdx/mise-action@9b200bcecbfd6303e69a4a261b2e09e3757440a7 # v5.2.0
 
       - run: mise run ci
+
+  # The only required check in the ruleset. Add new jobs to `needs`.
+  all-checks:
+    if: always()
+    needs: [ci]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35 # v1.3.0
+        with:
+          jobs: ${{ toJSON(needs) }}

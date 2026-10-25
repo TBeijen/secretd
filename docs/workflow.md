@@ -60,7 +60,7 @@ Applies to issue reviews and PR reviews.
   ```
 
   Without `-c` and `-k`, `fnox set` writes to `fnox.toml` and uses the variable name as Keychain name. `fnox.local.toml` then overrides it with a name that has no value.
-- **Ruleset on `main`:** require a PR, require CI, no force pushes.
+- **Ruleset on `main`:** require a PR, squash merges only, no force pushes. Require one status check: `all-checks`, a gate job in `ci.yaml` (`re-actors/alls-green`). New CI jobs go into its `needs`, so the ruleset never changes.
 - **Merging:** the agent uses the owner's token, so it can technically merge. nono's `endpoint_rules` can't distinguish GraphQL mutations (`gh pr merge` uses GraphQL). Accept this, and merge by hand as a convention.
 - **Later:** a GitHub App as a separate bot identity for posted reviews.
 - **Commits** keep the `Co-Authored-By` trailer for AI-assisted work.
